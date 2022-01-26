@@ -31,19 +31,10 @@ describe Oystercard do
     before do
       subject.instance_variable_set(:@entry_station, entry_station)
     end
-    
-    it 'stores exit station' do
-      subject.touch_out(exit_station)
-      expect(subject.exit_station).to eq exit_station
-    end
 
     it "can touch out" do
       subject.touch_out(exit_station)
       expect(subject).not_to be_in_journey
-    end
-
-    it 'stores the entry station' do
-      expect(subject.entry_station).to eq entry_station
     end
 
     it "can deduct fare from balance when you touch out" do      
@@ -51,14 +42,34 @@ describe Oystercard do
       end 
   end
 
+  
+
   context 'card has balance' do
     before do
       subject.instance_variable_set(:@balance, 90)
     end
 
+    describe "#journey_log" do
+      it 'stores the entry_station' do
+       subject.touch_in(entry_station)
+       subject.touch_out(exit_station)
+       expect(subject.journeys[0][:entry_station]).to eq(entry_station)
+      end
+
+      it 'stores the exit_station' do
+        subject.touch_in(entry_station)
+        subject.touch_out(exit_station)
+        expect(subject.journeys[0][:exit_station]).to eq(exit_station)
+      end
+
+      it 'has no journeys by default' do
+        expect(subject.journeys).to be_empty
+      end
+    end
+
     it "can issue error if balance is over maximum limit" do
       maximum_balance = Oystercard::MAXIMUM_BALANCE
-      expect { subject.top_up (1) }.to raise_error "#{subject.balance} cannot exceed #{maximum_balance}"
+      expect { subject.top_up (1) }.to raise_error "Balance cannot exceed #{maximum_balance}"
     end 
 
     it "can touch in" do

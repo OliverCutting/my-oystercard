@@ -1,9 +1,12 @@
+require_relative 'station'
+require_relative 'journey'
+
 class Oystercard
   
   MAXIMUM_BALANCE = 90
   MINIMUM_BALANCE = 1
 
-  attr_reader :balance, :entry_station, :exit_station, :journeys
+  attr_reader :balance, :journeys
   
   def initialize(balance = 0)
     @balance = balance
@@ -11,12 +14,12 @@ class Oystercard
   end 
 
   def top_up(money)
-    fail "#{@balance} cannot exceed #{MAXIMUM_BALANCE}" if (money + @balance) > MAXIMUM_BALANCE
+    fail "Balance cannot exceed #{MAXIMUM_BALANCE}" if (money + @balance) > MAXIMUM_BALANCE
     @balance += money
   end 
  
   def in_journey?
-    !!entry_station
+    !!@entry_station
   end 
 
   def touch_in(entry_station)
@@ -26,12 +29,16 @@ class Oystercard
 
   def touch_out(exit_station)
     deduct(MINIMUM_BALANCE)
-    @exit_station = exit_station
-    journey = Hash.new
-    journey[:entry_station] = entry_station
-    journey[:exit_station] = exit_station
-    @journeys << journey
+    journey_log(@entry_station, exit_station)
     @entry_station = nil
+  end
+
+  def journey_log(entry_station, exit_station)
+    journey = {
+      entry_station: entry_station,
+      exit_station: exit_station
+    }
+    @journeys << journey
   end
 
   private
